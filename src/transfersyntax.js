@@ -61,34 +61,34 @@ function element_reader(tag_reader, number_reader, implicit) {
         var vr;
         if (tag == 0xfffee000 || tag == 0xfffee00d || tag == 0xfffee0dd) {
             // Item delimiters
+            element.tag = tag;
+            element.vl = this._read_number(buffer, offset, 4);
+            offset += 4;
+            element.vr = "N/A";
+            return offset;
+        }
+            
+        if(implicit) {
+            vr = "UN";
+            if(tag in dcmdict) {
+                vr = dcmdict[tag][0];
+            }
+            
             vl = this._read_number(buffer, offset, 4);
             offset += 4;
-            vr = "N/A";
         } else {
-            
-            if(implicit) {
-                vr = "UN";
-                if(tag in dcmdict) {
-                    vr = dcmdict[tag][0];
-                }
-                
+            vr = read_vr(buffer, offset);
+            if(vr == "OB" || vr == "OF" || vr == "SQ" || vr == "OW" || vr == "UN") { 
+                offset += 4;
                 vl = this._read_number(buffer, offset, 4);
                 offset += 4;
             } else {
-                vr = read_vr(buffer, offset);
-                if(vr == "OB" || vr == "OF" || vr == "SQ" || vr == "OW" || vr == "UN") { 
-                    offset += 4;
-                    vl = this._read_number(buffer, offset, 4);
-                    offset += 4;
-                } else {
-                    offset += 2;
-                    vl = this._read_number(buffer, offset, 2);
-                    offset += 2;
-                }
+                offset += 2;
+                vl = this._read_number(buffer, offset, 2);
+                offset += 2;
             }
         }
         
-        //element = {};
         element.tag = tag;
         element.vr = vr;
         if (vl == 0xffffffff)
@@ -97,6 +97,23 @@ function element_reader(tag_reader, number_reader, implicit) {
             element.vl = vl;
         element.data = buffer.subarray(offset, offset + element.vl);
         element.implicit = implicit;
+
+        if(element.vr == "SQ") {
+            element.sequence_items = [];
+            var itemstart = new DataElement(implicit);
+            var seq_offset = this.read_element(buffer, offset, itemstart); // Item start
+            if(itemstart.vl == 0xffffffff) { 
+                // TODO: Handle implicit length
+                console.log("SQ with implicit length not yet supported");
+            } else {
+                var sequence = [];
+                while(seq_offset < offset + element.vl) {
+                    var item = new DataElement(implicit);
+                    seq_offset = this.read_element(buffer, seq_offset, item);
+                    element.sequence_items.push(item);
+                }
+            }
+        }
         
         offset += element.vl;
         return offset;
