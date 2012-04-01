@@ -95,18 +95,24 @@ function element_reader(tag_reader, number_reader, implicit) {
             element.vl = 0;
         else
             element.vl = vl;
-        element.data = buffer.subarray(offset, offset + element.vl);
-        element.implicit = implicit;
 
         if(element.vr == "SQ") {
             element.sequence_items = [];
             var itemstart = new DataElement(implicit);
             var seq_offset = this.read_element(buffer, offset, itemstart); // Item start
-            if(itemstart.vl == 0xffffffff) { 
-                // TODO: Handle implicit length
-                console.log("SQ with implicit length not yet supported");
-            } else {
-                var sequence = [];
+
+            if(itemstart.vl == 0xffffffff) { // Implicit length
+                var item = new DataElement(implicit);
+                var seq_offset = this.read_element(buffer, seq_offset, item); // Item start
+                while(item.tag != 0xfffee0dd) { // Sequence delimiter
+                    if(item.tag != 0xfffee00d) {
+                        element.sequence_items.push(item);
+                    }
+                    var item = new DataElement(implicit);
+                    var seq_offset = this.read_element(buffer, seq_offset, item); // Item start
+                }
+                element.vl = seq_offset-offset;
+            } else { // Explicit length, no sequence delimiter(?)
                 while(seq_offset < offset + element.vl) {
                     var item = new DataElement(implicit);
                     seq_offset = this.read_element(buffer, seq_offset, item);
@@ -114,7 +120,9 @@ function element_reader(tag_reader, number_reader, implicit) {
                 }
             }
         }
-        
+
+        element.data = buffer.subarray(offset, offset + element.vl);
+        element.implicit = implicit;
         offset += element.vl;
         return offset;
     }

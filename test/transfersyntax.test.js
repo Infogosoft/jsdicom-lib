@@ -70,4 +70,35 @@ $(document).ready(function(){
         //equal(element.vl, 4, "vl");
         return;
     });
+    test("Parse nested sequence element w. implicit length, little-endian, implicit VR", function() {
+        /* DCMDUMP:
+        (0008,1115) SQ (Sequence with undefined length #=1)     # u/l, 1 ReferencedSeriesSequence
+          (fffe,e000) na (Item with undefined length #=4)         # u/l, 1 Item
+            (0008,0000) UL 60                                       #   4, 1 IdentifyingGroupLength
+            (0008,1140) SQ (Sequence with undefined length #=1)     # u/l, 1 ReferencedImageSequence
+              (fffe,e000) na (Item with undefined length #=3)         # u/l, 1 Item
+                (0008,0000) UL 16                                       #   4, 1 IdentifyingGroupLength
+                (0008,1150) UI (no value available)                     #   0, 0 ReferencedSOPClassUID
+                (0008,1155) UI (no value available)                     #   0, 0 ReferencedSOPInstanceUID
+              (fffe,e00d) na (ItemDelimitationItem)                   #   0, 0 ItemDelimitationItem
+            (fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
+            (0020,0000) UL 8                                        #   4, 1 ImageGroupLength
+            (0020,000e) UI (no value available)                     #   0, 0 SeriesInstanceUID
+          (fffe,e00d) na (ItemDelimitationItem)                   #   0, 0 ItemDelimitationItem
+        (fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
+        */
+        
+        var buf = new Uint8Array(Array(0x08, 0x00, 0x15, 0x11, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0x00, 0xe0, 0xff, 0xff, 0xff, 0xff, 0x08, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x00, 0x08, 0x00, 0x40, 0x11, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0x00, 0xe0, 0xff, 0xff, 0xff, 0xff, 0x08, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x08, 0x00, 0x50, 0x11, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x55, 0x11, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0x0d, 0xe0, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0xdd, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x20, 0x00, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0x0d, 0xe0, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0xdd, 0xe0, 0x00, 0x00, 0x00, 0x00));
+
+        var ts = "1.2.840.10008.1.2";
+        var element_reader = get_element_reader(ts);
+        var offset = 0;
+        var element = new DataElement(is_little_endian[ts]);
+        offset = element_reader.read_element(buf, 0, element);
+
+        equal(element.vr, "SQ", "vr");
+        equal(element.sequence_items.length, 4, "Top SQ item count");
+        equal(element.sequence_items[1].sequence_items.length, 3, "Nested SQ item items");
+    });
+
 });
