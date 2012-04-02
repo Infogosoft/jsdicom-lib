@@ -72,8 +72,10 @@ function element_reader(tag_reader, number_reader, implicit) {
             vr = "UN";
             if(tag in dcmdict) {
                 vr = dcmdict[tag][0];
+            } else if(this._read_tag(buffer, offset + 4) == 0xfffee000) { 
+                // Assume SQ if nothing in dict and next tag is item delimiter
+                vr = "SQ";
             }
-            
             vl = this._read_number(buffer, offset, 4);
             offset += 4;
         } else {

@@ -99,6 +99,31 @@ $(document).ready(function(){
         equal(element.vr, "SQ", "vr");
         equal(element.sequence_items.length, 4, "Top SQ item count");
         equal(element.sequence_items[1].sequence_items.length, 3, "Nested SQ item items");
+        equal(offset, buf.length, "Offset");
     });
 
+    test("Parse private sequence element, assume SQ if next tag is itemstart", function() {
+        /* DCMDUMP:
+        (2001,9000) SQ (Sequence with undefined length #=1)     # u/l, 1 Unknown Tag & Data
+          (fffe,e000) na (Item with undefined length #=32)        # u/l, 1 Item
+            (0008,0000) UL 140                                      #   4, 1 IdentifyingGroupLength
+            (0008,0016) UI (no value available)                     #   0, 0 SOPClassUID
+            (0008,0018) UI (no value available)                     #   0, 0 SOPInstanceUID
+          (fffe,e00d) na (ItemDelimitationItem)                   #   0, 0 ItemDelimitationItem
+        (fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
+        */
+        
+        var buf = new Uint8Array(Array(0x01, 0x20, 0x00, 0x90, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0x00, 0xe0, 0xff, 0xff, 0xff, 0xff, 0x08, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x8c, 0x00, 0x00, 0x00, 0x08, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0x0d, 0xe0, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0xdd, 0xe0, 0x00, 0x00, 0x00, 0x00));
+        
+
+        var ts = "1.2.840.10008.1.2";
+        var element_reader = get_element_reader(ts);
+        var offset = 0;
+        var element = new DataElement(is_little_endian[ts]);
+        offset = element_reader.read_element(buf, 0, element);
+
+        equal(element.vr, "SQ", "vr");
+        equal(element.sequence_items.length, 3, "SQ item count");
+        equal(offset, buf.length, "Offset");
+    });
 });
