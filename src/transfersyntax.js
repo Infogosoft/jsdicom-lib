@@ -48,6 +48,33 @@ function read_tag_LE(buffer, offset) {
     return tag;
 }
 
+// Big endian writers
+function write_tag_BE(buffer, offset, tag) {
+    buffer[offset] = (tag & 0xff000000) >> 24;
+    buffer[offset+1] = (tag & 0x00ff0000) >> 16;
+    buffer[offset+2] = (tag & 0x0000ff00) >> 8;
+    buffer[offset+3] = (tag & 0x000000ff);
+}
+
+function write_number_BE(buffer, offset, length, number) {
+    for(var i=0;i<length;++i) {
+        buffer[offset+i] = (number >> (length-i-1)*8) & 0xff;
+    }
+}
+
+function write_tag_LE(buffer, offset, tag) {
+    buffer[offset+1] = (tag & 0xff000000) >> 24;
+    buffer[offset] = (tag & 0x00ff0000) >> 16;
+    buffer[offset+3] = (tag & 0x0000ff00) >> 8;
+    buffer[offset+2] = (tag & 0x000000ff);
+}
+
+function write_number_LE(buffer, offset, length, number) {
+    for(var i=0;i<length;++i) {
+        buffer[offset+i] = (number >> i*8) & 0xff;
+    }
+}
+
 function element_reader(tag_reader, number_reader, implicit) {
     this._read_tag = tag_reader;
     this._read_number = number_reader;
@@ -130,6 +157,34 @@ function element_reader(tag_reader, number_reader, implicit) {
     }
 }
 
+function element_writer(tag_writer, number_writer, implicit) {
+    this._write_tag = tag_writer;
+    this._write_number = number_writer;
+
+    // writes s a data element and returns the new offset
+    this.write_element = function(buffer, offset, element /* in */) {
+        // Even out offset
+        offset += (offset % 2);
+        this._write_tag(buffer, offset, element.tag);
+        offset += 4;
+        if(implicit) {
+            // 4 bytes for length
+            this._write_number(buffer, offset, 4, element.vl);
+            offset += 4;
+        } else {
+            // Write vr
+            buffer[offset] = element.vr[0];
+            buffer[offset+1] = element.vr[1];
+
+            this._write_number(buffer, offset + 2, 2, element.vl);
+            offset += 4;
+        }
+        // Write actual data
+        buffer.set(element.data, offset);
+        return offset + element.vl;
+    }
+}
+
 transferSyntaxes = {
     "LittleEndianImplicit": "1.2.840.10008.1.2",
     "LittleEndianExplicit": "1.2.840.10008.1.2.1",
@@ -165,7 +220,37 @@ tag_readers = {
     "1.2.840.10008.1.2.4.91": read_tag_LE,
     "1.2.840.10008.1.2.4.92": read_tag_LE,
     "1.2.840.10008.1.2.4.93": read_tag_LE,
-}
+};
+
+tag_writers = {
+    "1.2.840.10008.1.2": write_tag_LE,
+    "1.2.840.10008.1.2.1": write_tag_LE,
+    "1.2.840.10008.1.2.2": write_tag_BE,
+    "1.2.840.10008.1.2.4.50": write_tag_LE,
+    "1.2.840.10008.1.2.4.51": write_tag_LE,
+    "1.2.840.10008.1.2.4.52": write_tag_LE,
+    "1.2.840.10008.1.2.4.53": write_tag_LE,
+    "1.2.840.10008.1.2.4.54": write_tag_LE,
+    "1.2.840.10008.1.2.4.55": write_tag_LE,
+    "1.2.840.10008.1.2.4.56": write_tag_LE,
+    "1.2.840.10008.1.2.4.57": write_tag_LE,
+    "1.2.840.10008.1.2.4.58": write_tag_LE,
+    "1.2.840.10008.1.2.4.59": write_tag_LE,
+    "1.2.840.10008.1.2.4.60": write_tag_LE,
+    "1.2.840.10008.1.2.4.61": write_tag_LE,
+    "1.2.840.10008.1.2.4.62": write_tag_LE,
+    "1.2.840.10008.1.2.4.63": write_tag_LE,
+    "1.2.840.10008.1.2.4.64": write_tag_LE,
+    "1.2.840.10008.1.2.4.65": write_tag_LE,
+    "1.2.840.10008.1.2.4.66": write_tag_LE,
+    "1.2.840.10008.1.2.4.70": write_tag_LE,
+    "1.2.840.10008.1.2.4.80": write_tag_LE,
+    "1.2.840.10008.1.2.4.81": write_tag_LE,
+    "1.2.840.10008.1.2.4.90": write_tag_LE,
+    "1.2.840.10008.1.2.4.91": write_tag_LE,
+    "1.2.840.10008.1.2.4.92": write_tag_LE,
+    "1.2.840.10008.1.2.4.93": write_tag_LE,
+};
 
 is_implicit = {
     "1.2.840.10008.1.2": true,
@@ -231,6 +316,36 @@ number_readers = {
     "1.2.840.10008.1.2.4.91": read_number_LE,
     "1.2.840.10008.1.2.4.92": read_number_LE,
     "1.2.840.10008.1.2.4.93": read_number_LE
+};
+
+number_writers = {
+    "1.2.840.10008.1.2": write_number_LE,
+    "1.2.840.10008.1.2.1": write_number_LE,
+    "1.2.840.10008.1.2.2": write_number_BE,
+    "1.2.840.10008.1.2.4.50": write_number_LE,
+    "1.2.840.10008.1.2.4.51": write_number_LE,
+    "1.2.840.10008.1.2.4.52": write_number_LE,
+    "1.2.840.10008.1.2.4.53": write_number_LE,
+    "1.2.840.10008.1.2.4.54": write_number_LE,
+    "1.2.840.10008.1.2.4.55": write_number_LE,
+    "1.2.840.10008.1.2.4.56": write_number_LE,
+    "1.2.840.10008.1.2.4.57": write_number_LE,
+    "1.2.840.10008.1.2.4.58": write_number_LE,
+    "1.2.840.10008.1.2.4.59": write_number_LE,
+    "1.2.840.10008.1.2.4.60": write_number_LE,
+    "1.2.840.10008.1.2.4.61": write_number_LE,
+    "1.2.840.10008.1.2.4.62": write_number_LE,
+    "1.2.840.10008.1.2.4.63": write_number_LE,
+    "1.2.840.10008.1.2.4.64": write_number_LE,
+    "1.2.840.10008.1.2.4.65": write_number_LE,
+    "1.2.840.10008.1.2.4.66": write_number_LE,
+    "1.2.840.10008.1.2.4.70": write_number_LE,
+    "1.2.840.10008.1.2.4.80": write_number_LE,
+    "1.2.840.10008.1.2.4.81": write_number_LE,
+    "1.2.840.10008.1.2.4.90": write_number_LE,
+    "1.2.840.10008.1.2.4.91": write_number_LE,
+    "1.2.840.10008.1.2.4.92": write_number_LE,
+    "1.2.840.10008.1.2.4.93": write_number_LE
 }
 
 // Element reader factory
@@ -244,4 +359,7 @@ function get_element_reader(transfersyntaxUID) {
     return;
 }
 
+function get_element_writer(transfersyntaxUID) {
+    return;
+}
 meta_element_reader = get_element_reader("1.2.840.10008.1.2.1");

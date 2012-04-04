@@ -126,4 +126,54 @@ $(document).ready(function(){
         equal(element.sequence_items.length, 3, "SQ item count");
         equal(offset, buf.length, "Offset");
     });
+
+    test("Write tag little endian", function() {
+        var buffer = new Uint8Array(4);
+        write_tag_LE(buffer, 0, 0xff11ee22);
+        equal(buffer[0], 0x11, '1st byte');
+        equal(buffer[1], 0xff, '2nd byte');
+        equal(buffer[2], 0x22, '3rd byte');
+        equal(buffer[3], 0xee, '4th byte');
+    });
+
+    test("Write tag big endian", function() {
+        var buffer = new Uint8Array(4);
+        write_tag_BE(buffer, 0, 0xff11ee22);
+        equal(buffer[0], 0xff, '1st byte');
+        equal(buffer[1], 0x11, '2nd byte');
+        equal(buffer[2], 0xee, '3rd byte');
+        equal(buffer[3], 0x22, '4th byte');
+    });
+
+    test("Write 16-bit number little endian", function() {
+        var buffer = new Uint8Array(2);
+        write_number_LE(buffer, 0, 2, 17454);
+        equal(buffer[0], 0x2e, '1st byte');
+        equal(buffer[1], 0x44, '2nd byte');
+    });
+
+    test("Write 16-bit number big endian", function() {
+        var buffer = new Uint8Array(2);
+        write_number_BE(buffer, 0, 2, 17454);
+        equal(buffer[0], 0x44, '1st byte');
+        equal(buffer[1], 0x2e, '2nd byte');
+    });
+
+    test("Write 32-bit number little endian", function() {
+        var buffer = new Uint8Array(4);
+        write_number_LE(buffer, 0, 4, 1374263);
+        equal(buffer[0], 0x37, '1st byte');
+        equal(buffer[1], 0xf8, '2nd byte');
+        equal(buffer[2], 0x14, '3rd byte');
+        equal(buffer[3], 0x00, '4th byte');
+    });
+
+    test("Write 32-bit number little endian", function() {
+        var buffer = new Uint8Array(4);
+        write_number_BE(buffer, 0, 4, 1374263);
+        equal(buffer[0], 0x00, '1st byte');
+        equal(buffer[1], 0x14, '2nd byte');
+        equal(buffer[2], 0xf8, '3rd byte');
+        equal(buffer[3], 0x37, '4th byte');
+    });
 });
