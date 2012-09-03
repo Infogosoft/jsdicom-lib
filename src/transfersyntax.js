@@ -78,6 +78,7 @@ function write_number_LE(buffer, offset, length, number) {
 function element_reader(tag_reader, number_reader, implicit) {
     this._read_tag = tag_reader;
     this._read_number = number_reader;
+    this._implicit = implicit;
 
     // reads a data element and returns the new offset
     this.read_element = function(buffer, offset, element /* out */) {

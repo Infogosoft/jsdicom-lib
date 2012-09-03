@@ -94,5 +94,17 @@ DicomParser.prototype.parse_file = function() {
         if(data_element.tag in dcmdict)
             file[dcmdict[data_element.tag][1]] = data_element.get_value();
     }
+
+    if(element_reader._implicit && 'PixelData' in file && file.PixelData == undefined) {
+        if(file.BitsStored == 16) {
+            data_element = file.data_elements[dcmdict['PixelData']];
+            data_element.vr = "OW";
+            file[dcmdict[data_element.tag][1]] = data_element.get_value(); 
+        } else if(file.BitsStored == 8) {
+            data_element = file.data_elements[dcmdict['PixelData']];
+            data_element.vr = "OB";
+            file[dcmdict[data_element.tag][1]] = data_element.get_value(); 
+        }
+    }
     return file;
 }
