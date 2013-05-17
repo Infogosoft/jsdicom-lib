@@ -10,10 +10,6 @@
 * You should have received a copy of the GNU General Public License along with jsdicom. If not, see http://www.gnu.org/licenses/.
 */
 function DataElement(little_endian) {
-    this.tag;
-    this.vr;
-    this.vl;
-    this.data;
     this.little_endian = little_endian;
     var _get_value = function(element_to_value) {
         return function() {
