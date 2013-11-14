@@ -52,7 +52,7 @@ function buffer_to_unsigned_be(buffer, len) {
 
 function buffer_to_uint16array_le(buffer, len) {
     retval = new Uint16Array(buffer.buffer, buffer.byteOffset, len/2);
-    
+
     return retval;
 }
 
@@ -63,9 +63,9 @@ function buffer_to_uint16array_be(buffer, len) {
         buffer[i] = rb;
         buffer[i+1] = ra;
     }
-    
+
     retval = new Uint16Array(buffer.buffer, buffer.byteOffset, len/2);
-    
+
     return retval;
 }
 
@@ -79,6 +79,7 @@ function buffer_to_integer_string(buffer, len) {
 
 // Converts value to readable format
 var element_to_repr_le = {
+    "SH": buffer_to_string,
     "AE": buffer_to_string,
     "AS": buffer_to_string,
     "DS": buffer_to_string,
@@ -90,10 +91,12 @@ var element_to_repr_le = {
     "UT": buffer_to_string,
     "US": buffer_to_unsigned_le,
     "UL": buffer_to_unsigned_le,
+    "SS": buffer_to_unsigned_le,
     "IS": buffer_to_integer_string
 };
 
 var element_to_repr_be = {
+    "SH": buffer_to_string,
     "AE": buffer_to_string,
     "AS": buffer_to_string,
     "DS": buffer_to_string,
@@ -105,10 +108,12 @@ var element_to_repr_be = {
     "UT": buffer_to_string,
     "US": buffer_to_unsigned_be,
     "UL": buffer_to_unsigned_be,
+    "SS": buffer_to_unsigned_be,
     "IS": buffer_to_integer_string
 };
 
 var element_to_value_le = {
+    "SH": buffer_to_string,
     "AE": buffer_to_string,
     "AS": buffer_to_string,
     "DS": buffer_to_string_float,
@@ -121,12 +126,14 @@ var element_to_value_le = {
     "UT": buffer_to_string,
     "US": buffer_to_unsigned_le,
     "UL": buffer_to_unsigned_le,
+    "SS": buffer_to_unsigned_le,
     "IS": buffer_to_integer_string,
     "OW": buffer_to_uint16array_le,
     "OB": buffer_to_uint8array
 };
 
 var element_to_value_be = {
+    "SH": buffer_to_string,
     "AE": buffer_to_string,
     "AS": buffer_to_string,
     "DS": buffer_to_string_float,
@@ -139,6 +146,7 @@ var element_to_value_be = {
     "UT": buffer_to_string,
     "US": buffer_to_unsigned_be,
     "UL": buffer_to_unsigned_be,
+    "SS": buffer_to_unsigned_be,
     "IS": buffer_to_integer_string,
     "OW": buffer_to_uint16array_be,
     "OB": buffer_to_uint8array
@@ -148,7 +156,7 @@ function tag_repr(tag) {
     var t = tag.toString(16).toUpperCase();
     while(t.length < 8)
         t="0"+t;
-    t = "(" + t.substr(0,4) + ", " + t.substr(4,4) + ")"; 
+    t = "(" + t.substr(0,4) + ", " + t.substr(4,4) + ")";
     return t;
 }
 // Element to stuff
@@ -157,7 +165,7 @@ function element_repr(elem) {
     var tag = elem.tag.toString(16).toUpperCase();
     while(tag.length < 8)
         tag="0"+tag;
-    tag = "(" + tag.substr(0,4) + ", " + tag.substr(4,4) + ")"; 
+    tag = "(" + tag.substr(0,4) + ", " + tag.substr(4,4) + ")";
     if(elem.vr in element_to_repr)
     {
         return tag + " - " + element_to_repr[elem.vr](elem.data, elem.vl);
