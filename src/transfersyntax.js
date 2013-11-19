@@ -108,7 +108,7 @@ function element_reader(tag_reader, number_reader, implicit) {
             offset += 4;
         } else {
             vr = read_vr(buffer, offset);
-            if(vr == "OB" || vr == "OF" || vr == "SQ" || vr == "OW" || vr == "UN") { 
+            if(vr == "OB" || vr == "OF" || vr == "SQ" || vr == "OW" || vr == "UN" || vr == "ox") { 
                 offset += 4;
                 vl = this._read_number(buffer, offset, 4);
                 offset += 4;
