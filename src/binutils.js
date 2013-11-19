@@ -129,6 +129,7 @@ var element_to_value_le = {
     "SS": buffer_to_unsigned_le,
     "IS": buffer_to_integer_string,
     "OW": buffer_to_uint16array_le,
+    "ox": buffer_to_uint16array_le,
     "OB": buffer_to_uint8array
 };
 
@@ -149,6 +150,7 @@ var element_to_value_be = {
     "SS": buffer_to_unsigned_be,
     "IS": buffer_to_integer_string,
     "OW": buffer_to_uint16array_be,
+    "ox": buffer_to_uint16array_be,
     "OB": buffer_to_uint8array
 };
 
